@@ -3,59 +3,59 @@ package com.example.coffeeplz;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Context;
 import android.content.Intent;
 import android.nfc.NfcAdapter;
-import android.nfc.NfcManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-	private boolean nfcIsActivated = false;
 	private boolean isFirstRun = true;
 	private static final int SETTINGS_ACTIVITY_CODE = 1;
+	private Intent nfcActivity;
+	private ImageView menuImage;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		checkNfcActivation();
+		menuImage = (ImageView) findViewById(R.id.menuImage);
+		try {
+			checkNfcActivation();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
 	 * Checks NFC activation
 	 */
-	public boolean checkNfcActivation() {
+	public void checkNfcActivation() throws InterruptedException {
 
 		NfcAdapter nfc = NfcAdapter.getDefaultAdapter(this);
 		if (nfc == null){
 		// you are fucked
-		Toast toast = Toast.makeText(this,"No NFC capability on this device, go buy a real phone",Toast.LENGTH_LONG);
-		toast.show();
-			nfcIsActivated = false;
+		Toast.makeText(this,"No NFC capability on this device, go buy a real phone",Toast.LENGTH_LONG).show();
 		} else if (!nfc.isEnabled()){
 			if (isFirstRun) {
-				Toast toast = Toast.makeText(this, "NFC must be activated", Toast.LENGTH_SHORT);
-				toast.show();
+				Toast.makeText(this, "NFC must be activated you fool", Toast.LENGTH_SHORT).show();
 			}else{
-				Toast toast = Toast.makeText(this, "ACTIVATE NFC YOU DUMB FUCK", Toast.LENGTH_SHORT);
-				toast.show();
+			Toast.makeText(this, "ACTIVATE NFC YOU DUMB FUCK", Toast.LENGTH_SHORT).show();
 			}
 			// NFC present but not activated
 			(new Handler()).postDelayed(this::activateNfc,1000);
-			nfcIsActivated = false;
 			isFirstRun = false;
 		} else {
 			// NFC activated -> switch to next activity
-			Toast toast = Toast.makeText(this,"NFC activated",Toast.LENGTH_SHORT);
-			toast.show();
-			nfcIsActivated = true;
+			menuImage.setImageResource(R.drawable.mainthief2);
+			Toast.makeText(this,"NFC activated. OK you can pass",Toast.LENGTH_SHORT).show();
+			(new Handler()).postDelayed(this::launchNfcActivity, 2000);
+
 		}
-		return nfcIsActivated;
 	}
 
 	/**
@@ -79,7 +79,19 @@ public class MainActivity extends AppCompatActivity {
 	 */
 	protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		checkNfcActivation();
+		try {
+			checkNfcActivation();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Launch next activity
+	 */
+	protected void launchNfcActivity(){
+		nfcActivity = new Intent(this,NfcActivity.class);
+		startActivity(nfcActivity);
 	}
 }
 

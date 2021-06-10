@@ -6,4 +6,35 @@
     android:layout_height="match_parent"
     tools:context=".NfcActivity">
 
+    <TextView
+        android:id="@+id/topMessage"
+        android:layout_width="match_parent"
+        android:layout_height="121dp"
+        android:fontFamily="@font/hacked"
+        android:gravity="center"
+        android:text="Place coffee tag"
+        android:textSize="30sp"
+        tools:layout_editor_absoluteX="-1dp"
+        tools:layout_editor_absoluteY="1dp" />
+
+    <TextView
+        android:id="@+id/uid_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginLeft="32dp"
+        android:fontFamily="@font/hacked"
+        android:text="UID : "
+        android:textSize="24sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topMessage" />
+
+    <TextView
+        android:id="@+id/uid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/hacked"
+        android:textSize="24sp"
+        app:layout_constraintLeft_toRightOf="@id/uid_title"
+        app:layout_constraintTop_toBottomOf="@id/topMessage" />
 </androidx.constraintlayout.widget.ConstraintLayout>
