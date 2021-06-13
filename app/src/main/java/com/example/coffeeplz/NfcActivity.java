@@ -25,6 +25,7 @@ public class NfcActivity extends AppCompatActivity {
 	private NfcAdapter adapter;
 	private static final byte[] KEY_A = {(byte)0xa0,(byte)0xa1,(byte)0xa2,(byte)0xa3,(byte)0xa4,(byte)0xa5};
 	private static final byte[] KEY_B = {(byte)0x41,(byte)0x5a,(byte)0x54,(byte)0x45,(byte)0x4b,(byte)0x4d};
+
 	private PendingIntent pendingIntent;
 	private TextView topMessage;
 	private TextView uid;
@@ -154,46 +155,31 @@ public class NfcActivity extends AppCompatActivity {
 	@RequiresApi(api = Build.VERSION_CODES.KITKAT)
 	private void authenticate(MifareClassic tag) {
 
-
 		try {
 			mifareTag.connect();
-			topMessage.setText("Tag found - deciphering ...\n Keep the tag against the phone");
-			boolean s8Auth = mifareTag.authenticateSectorWithKeyA(8,KEY_A);
-			boolean s9Auth = mifareTag.authenticateSectorWithKeyA(9,KEY_A);
-			boolean s10Auth = mifareTag.authenticateSectorWithKeyA(10,KEY_A);
-			boolean s11Auth = mifareTag.authenticateSectorWithKeyA(11,KEY_A);
-			boolean s13Auth = mifareTag.authenticateSectorWithKeyA(13,KEY_A);
-
-			StringBuilder sb = new StringBuilder();
-			sb.append(s8Auth);
-			sb.append('\n');
-			sb.append(s9Auth);
-			sb.append('\n');
-			sb.append(s10Auth);
-			sb.append('\n');
-			sb.append(s11Auth);
-			sb.append('\n');
-			sb.append(s13Auth);
-			sb.append('\n');
-			Toast.makeText(this, sb, Toast.LENGTH_SHORT).show();
-			if (s8Auth) {
-				try{
-					Thread.sleep(5000);
-					int block_index = mifareTag.sectorToBlock(8);
-					byte[] block8 = mifareTag.readBlock((byte)block_index);
-				}catch (Exception e){
-					Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-
+			if (mifareTag.isConnected()){
+				Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
+				// Block 0
+				if (mifareTag.authenticateSectorWithKeyA(0,MifareClassic.KEY_DEFAULT)){
+						Toast.makeText(this, "Sector 0 Authenticated with default key", Toast.LENGTH_SHORT).show();
+						int blockIndex=mifareTag.blockToSector(0);
+						byte[] block = mifareTag.readBlock(blockIndex);
+						Toast.makeText(this,"block" + 0 + ": " + toHex(block),Toast.LENGTH_LONG).show();
+					}
+				// Block 8
+				if (mifareTag.authenticateSectorWithKeyB(8,KEY_B)){
+					Toast.makeText(this, "Sector 8 Authenticated with key B", Toast.LENGTH_SHORT).show();
+					mifareTag.setTimeout(5000);
+					int blockIndex=mifareTag.blockToSector(8);
+					byte[] block = mifareTag.readBlock(blockIndex);
+					Toast.makeText(this,"block" + 32 + ": " + toHex(block),Toast.LENGTH_LONG).show();
+				}else{
+					Toast.makeText(this,"Not auth with B",Toast.LENGTH_SHORT).show();
 				}
 			}
-
 		} catch (IOException e) {
-			e.printStackTrace();
+					Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
 		}
-
-
-
-
 
 	}
 
