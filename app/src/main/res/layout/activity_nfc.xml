@@ -37,4 +37,5 @@
         android:textSize="24sp"
         app:layout_constraintLeft_toRightOf="@id/uid_title"
         app:layout_constraintTop_toBottomOf="@id/topMessage" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

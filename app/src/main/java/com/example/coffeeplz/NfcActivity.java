@@ -15,6 +15,7 @@ import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -31,6 +32,11 @@ public class NfcActivity extends AppCompatActivity {
 	private TextView uid;
 	private boolean isMifare;
 	private MifareClassic mifareTag;
+
+	// Sector 8, 9 ,10 ,11
+	private byte[][] payload = new byte[5][];
+	private byte[] sector13;
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -136,12 +142,11 @@ public class NfcActivity extends AppCompatActivity {
 					sb.append("Mifare classic error: " + e.getMessage());
 				}
 			}
-
-
 		}
 
 		uid.setText(toHex(id));
-		//Toast.makeText(this, sb.toString(), Toast.LENGTH_LONG).show();
+		topMessage.setText("Tag found, deciphering... Plz keep the tag on the phone");
+
 
 		if (isMifare) {
 			authenticate(mifareTag);
@@ -161,20 +166,32 @@ public class NfcActivity extends AppCompatActivity {
 				Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
 				// Block 0
 				if (mifareTag.authenticateSectorWithKeyA(0,MifareClassic.KEY_DEFAULT)){
-						Toast.makeText(this, "Sector 0 Authenticated with default key", Toast.LENGTH_SHORT).show();
 						int blockIndex=mifareTag.blockToSector(0);
 						byte[] block = mifareTag.readBlock(blockIndex);
-						Toast.makeText(this,"block" + 0 + ": " + toHex(block),Toast.LENGTH_LONG).show();
 					}
-				// Block 8
-				if (mifareTag.authenticateSectorWithKeyB(8,KEY_B)){
-					Toast.makeText(this, "Sector 8 Authenticated with key B", Toast.LENGTH_SHORT).show();
-					mifareTag.setTimeout(5000);
-					int blockIndex=mifareTag.blockToSector(8);
-					byte[] block = mifareTag.readBlock(blockIndex);
-					Toast.makeText(this,"block" + 32 + ": " + toHex(block),Toast.LENGTH_LONG).show();
+				// Block 8 -> 11
+				for(int i=8;i<12;i++){
+					if (mifareTag.authenticateSectorWithKeyB(i,KEY_B)){
+						ByteArrayOutputStream out = new ByteArrayOutputStream();
+						int blockIndex=mifareTag.sectorToBlock(i);
+						for (int j=blockIndex;j<blockIndex+3;j++) {
+							out.write(mifareTag.readBlock(j));
+						}
+						payload[i-8] = out.toByteArray();
+					}else{
+						Toast.makeText(this,"ERROR : Sector " +i+" Could not be authenticated",Toast.LENGTH_SHORT).show();
+					}
+				}
+				if (mifareTag.authenticateSectorWithKeyB(13,KEY_B)){
+					ByteArrayOutputStream out = new ByteArrayOutputStream();
+					int blockIndex=mifareTag.sectorToBlock(13);
+					for (int j=blockIndex;j<blockIndex+3;j++) {
+						out.write(mifareTag.readBlock(j));
+					}
+					payload[4] = out.toByteArray();
+					out.close();
 				}else{
-					Toast.makeText(this,"Not auth with B",Toast.LENGTH_SHORT).show();
+					Toast.makeText(this,"ERROR : Sector 13 Could not be authenticated",Toast.LENGTH_SHORT).show();
 				}
 			}
 		} catch (IOException e) {
